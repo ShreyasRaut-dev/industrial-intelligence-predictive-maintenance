@@ -425,6 +425,7 @@ def predict_with_custom_model(model_name: str, input_df: pd.DataFrame):
     neg_name = cfg.get("negative_class_name", "Normal")
 
     output_df = input_df.copy()
+    output_df["Predicted_Condition"] = np.where(preds == 1, "Failure", "Normal")
     output_df["Predicted_Class"] = np.where(preds == 1, pos_name, neg_name)
     output_df["Failure_Score_%"] = np.round(raw_probs * 100.0, 2)
     output_df["Threshold_Applied"] = round(threshold, 3)

@@ -1249,15 +1249,16 @@ elif selected_nav == "🔮 Custom Model Inference":
                     
                     # Summary metrics
                     total_c = len(c_preds)
-                    fault_col = "Predicted Condition" if "Predicted Condition" in c_preds.columns else None
-                    if fault_col:
-                        fault_c = int((c_preds[fault_col] != "Normal").sum())
-                        norm_c = total_c - fault_c
-                        
-                        sm1, sm2, sm3 = st.columns(3)
-                        sm1.metric("Total Records Processed", f"{total_c:,}")
-                        sm2.metric("Normal Operating Machines", f"{norm_c:,} ({norm_c/total_c*100:.1f}%)")
-                        sm3.metric("Fault Alerts Detected", f"{fault_c:,} ({fault_c/total_c*100:.1f}%)")
+                    fault_c = int((c_preds["Predicted_Condition"] == "Failure").sum()) if "Predicted_Condition" in c_preds.columns else int((c_preds["Predicted_Class"].astype(str).isin(["1", "Failure", "fault"])).sum())
+                    norm_c = total_c - fault_c
+                    thresh_val = float(c_preds["Threshold_Applied"].iloc[0]) * 100 if "Threshold_Applied" in c_preds.columns else 50.0
+                    
+                    sm1, sm2, sm3 = st.columns(3)
+                    sm1.metric("Total Records Processed", f"{total_c:,}")
+                    sm2.metric("Normal Operating Machines", f"{norm_c:,} ({norm_c/total_c*100:.1f}%)")
+                    sm3.metric("Fault Alerts Detected", f"{fault_c:,} ({fault_c/total_c*100:.1f}%)")
+
+                    st.info(f"💡 **Decision Rule Applied:** Any machine with a **Failure Score ≥ {thresh_val:.1f}%** (the model's optimal F1 threshold) is diagnosed as **Failure** for early preventive maintenance.")
 
                     st.success(f"✓ Inference Complete! Evaluated {total_c} records using '{chosen_name}'.")
                     st.dataframe(c_preds, use_container_width=True)
