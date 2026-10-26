@@ -983,33 +983,44 @@ elif selected_nav == "🧪 Mode B: Train New Dataset":
     st.caption("Upload any labelled sensor dataset (e.g. pumps, compressors, turbines) to train a dedicated Deep Learning model in isolation.")
 
     st.markdown("<div class='aurel-panel'>", unsafe_allow_html=True)
+
+    # Initialize training dataframe in session state
+    if "custom_train_df" not in st.session_state:
+        st.session_state.custom_train_df = None
+
     sample_pump_path = Path("industrial_fault_detection_dl/data/sample_custom_pump_dataset.csv")
+    sample_comp_path = Path("industrial_fault_detection_dl/data/compressor_training_dataset.csv")
+    sample_turb_path = Path("industrial_fault_detection_dl/data/wind_turbine_training_dataset.csv")
 
-    col_dl1, col_dl2 = st.columns([1, 2])
-    with col_dl1:
-        if sample_pump_path.exists():
-            st.download_button(
-                "📥 Download Sample Pump Dataset",
-                data=sample_pump_path.read_bytes(),
-                file_name="sample_custom_pump_dataset.csv",
-                mime="text/csv",
-                use_container_width=True
-            )
-
+    st.markdown("##### 📁 Step 1: Upload or Select Training Dataset")
     uploaded_train = st.file_uploader("Upload labelled training dataset (CSV)", type=["csv"], key="train_uploader")
-    active_train_df = None
 
     if uploaded_train is not None:
         try:
-            active_train_df = pd.read_csv(uploaded_train)
+            st.session_state.custom_train_df = pd.read_csv(uploaded_train)
         except Exception as e:
             show_friendly_notice("CSV Parse Notice", "Could not read uploaded CSV file.", str(e), "warning")
-    elif st.button("📂 Load Pre-Packaged Industrial Pump Dataset (145 records)", key="load_sample_pump_btn"):
-        if sample_pump_path.exists():
-            active_train_df = pd.read_csv(sample_pump_path)
+
+    st.markdown("<div style='font-size:0.85rem; color:" + text_muted + "; margin-bottom:6px;'>Or quickly load one of our bundled industrial training datasets:</div>", unsafe_allow_html=True)
+    c_s1, c_s2, c_s3 = st.columns(3)
+    with c_s1:
+        if st.button("📂 Load Pump Dataset (145 rows)", key="btn_load_pump", use_container_width=True):
+            if sample_pump_path.exists():
+                st.session_state.custom_train_df = pd.read_csv(sample_pump_path)
+    with c_s2:
+        if st.button("📂 Load Compressor Dataset (260 rows)", key="btn_load_comp", use_container_width=True):
+            if sample_comp_path.exists():
+                st.session_state.custom_train_df = pd.read_csv(sample_comp_path)
+    with c_s3:
+        if st.button("📂 Load Turbine Dataset (260 rows)", key="btn_load_turb", use_container_width=True):
+            if sample_turb_path.exists():
+                st.session_state.custom_train_df = pd.read_csv(sample_turb_path)
+
+    active_train_df = st.session_state.custom_train_df
 
     if active_train_df is not None:
-        st.markdown("#### 1. Dataset Preview & Column Structure")
+        st.markdown("<hr style='border:none; border-top:1px solid " + border_color + "; margin:18px 0;'>", unsafe_allow_html=True)
+        st.markdown("##### 📊 Step 2: Dataset Preview & Column Structure")
         st.dataframe(active_train_df.head(6), use_container_width=True)
 
         cols = list(active_train_df.columns)
@@ -1038,13 +1049,12 @@ elif selected_nav == "🧪 Mode B: Train New Dataset":
                 selected_features = st.multiselect("Selected Input Features", candidate_feats, default=default_feats)
 
             if selected_features:
-                st.markdown("#### 2. Model Identifier & Configuration")
+                st.markdown("##### ⚙️ Step 3: Model Identifier & Training")
                 custom_model_name = st.text_input(
                     "Custom Model Name / Identifier",
                     value="custom_machinery_v1",
                     help="Name for saving the neural network into models/custom_models/"
                 )
-                # Defaults set automatically: optimal 35 max epochs (with early stopping) & batch size 32
                 epochs = 35
                 batch_size = 32
                 st.caption("⚡ *Neural network hyperparameters configured automatically: Batch Size = 32, Max Epochs = 35 (with Early Stopping & Dynamic Class Weighting).*")
@@ -1062,7 +1072,12 @@ elif selected_nav == "🧪 Mode B: Train New Dataset":
                                 batch_size=batch_size
                             )
 
-                            show_friendly_notice("Training Successful", f"Model '{config['model_name']}' trained and saved safely without modifying baseline weights.", level="success")
+                            st.session_state.selected_custom_model = config["model_name"]
+                            show_friendly_notice("Training Successful", f"Model '{config['model_name']}' trained and saved safely! It is now ready for inference.", level="success")
+
+                            if st.button(f"🔮 Open '{config['model_name']}' in Custom Model Inference Tab", type="primary", key="goto_custom_tab_btn"):
+                                st.session_state.selected_nav = "🔮 Custom Model Inference"
+                                st.rerun()
 
                             m = config["metrics"]
                             st.markdown("#### Held-Out Test Evaluation Results")
@@ -1117,7 +1132,10 @@ elif selected_nav == "🔮 Custom Model Inference":
         show_friendly_notice("No Custom Models Found", "You haven't trained any custom models yet.", "Navigate to '🧪 Mode B: Train New Dataset' to train your first model.", level="warning")
     else:
         names = [m["model_name"] for m in custom_models]
-        chosen_name = st.selectbox("Choose Saved Model", names)
+        default_idx = 0
+        if "selected_custom_model" in st.session_state and st.session_state.selected_custom_model in names:
+            default_idx = names.index(st.session_state.selected_custom_model)
+        chosen_name = st.selectbox("Choose Saved Model", names, index=default_idx)
         cfg = next(m for m in custom_models if m["model_name"] == chosen_name)
         cm_metrics = cfg.get("metrics", {})
 
@@ -1192,29 +1210,33 @@ elif selected_nav == "🔮 Custom Model Inference":
         st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
         st.markdown(f"#### 🧪 Run Inference with '{chosen_name}'")
 
+        if "custom_infer_df" not in st.session_state:
+            st.session_state.custom_infer_df = None
+
         uploaded_c_batch = st.file_uploader(f"Upload CSV for '{chosen_name}'", type=["csv"], key="c_infer_uploader")
-        c_input_df = None
 
         if uploaded_c_batch is not None:
             try:
-                c_input_df = pd.read_csv(uploaded_c_batch)
+                st.session_state.custom_infer_df = pd.read_csv(uploaded_c_batch)
             except Exception as e:
                 show_friendly_notice("CSV Read Error", "Could not parse file.", str(e), "warning")
         elif "pump" in chosen_name.lower():
-            if st.button("📂 Load Sample Test Records for this Pump Model", key="load_custom_sample_btn"):
-                pump_p = Path("industrial_fault_detection_dl/data/sample_custom_pump_dataset.csv")
-                if pump_p.exists():
-                    c_input_df = pd.read_csv(pump_p).drop(columns=["Fault"], errors="ignore").head(12)
-        elif "compressor" in chosen_name.lower():
-            comp_dl = Path("C:/Users/Admin/Downloads/compressor_test_records.csv")
-            if comp_dl.exists():
-                if st.button("📂 Load Compressor Test Records from Downloads", key="load_custom_comp_btn"):
-                    c_input_df = pd.read_csv(comp_dl).head(15)
+            pump_p = Path("industrial_fault_detection_dl/data/sample_custom_pump_dataset.csv")
+            if pump_p.exists():
+                if st.button("📂 Load Sample Test Records for this Pump Model", key="load_custom_sample_btn"):
+                    st.session_state.custom_infer_df = pd.read_csv(pump_p).drop(columns=["Fault"], errors="ignore").head(12)
+        elif "compressor" in chosen_name.lower() or "compresser" in chosen_name.lower():
+            comp_p = Path("industrial_fault_detection_dl/data/compressor_test_records.csv")
+            if comp_p.exists():
+                if st.button("📂 Load Compressor Test Records (15 Machines)", key="load_custom_comp_btn"):
+                    st.session_state.custom_infer_df = pd.read_csv(comp_p).head(15)
         elif "turbine" in chosen_name.lower():
-            turb_dl = Path("C:/Users/Admin/Downloads/wind_turbine_test_records.csv")
-            if turb_dl.exists():
-                if st.button("📂 Load Wind Turbine Test Records from Downloads", key="load_custom_turb_btn"):
-                    c_input_df = pd.read_csv(turb_dl).head(15)
+            turb_p = Path("industrial_fault_detection_dl/data/wind_turbine_test_records.csv")
+            if turb_p.exists():
+                if st.button("📂 Load Wind Turbine Test Records (15 Turbines)", key="load_custom_turb_btn"):
+                    st.session_state.custom_infer_df = pd.read_csv(turb_p).head(15)
+
+        c_input_df = st.session_state.custom_infer_df
 
         if c_input_df is not None:
             st.markdown(f"**Loaded Telemetry Records ({len(c_input_df)} rows):**")
