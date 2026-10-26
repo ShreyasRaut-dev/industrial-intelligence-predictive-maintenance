@@ -1,0 +1,31 @@
+{
+  "dataset_rows": 10000,
+  "normal_records": 9661,
+  "failure_records": 339,
+  "failure_rate_percent": 3.39,
+  "train_rows": 6400,
+  "validation_rows": 1600,
+  "test_rows": 2000,
+  "epochs_trained": 57,
+  "threshold": 0.9,
+  "accuracy": 0.9735,
+  "precision": 0.5862,
+  "recall": 0.75,
+  "f1": 0.6581,
+  "roc_auc": 0.9652,
+  "average_precision": 0.696,
+  "random_state": 42,
+  "model": "TensorFlow/Keras MLP",
+  "features": [
+    "Air temperature [K]",
+    "Process temperature [K]",
+    "Rotational speed [rpm]",
+    "Torque [Nm]",
+    "Tool wear [min]",
+    "Type_H",
+    "Type_L",
+    "Type_M"
+  ],
+  "note": "Test metrics use a held-out stratified test set. The decision threshold was selected on validation data only.",
+  "dataset_note": "AI4I 2020 is synthetic data, not live factory sensor data."
+}

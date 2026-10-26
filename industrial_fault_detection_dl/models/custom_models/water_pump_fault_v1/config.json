@@ -1,0 +1,175 @@
+{
+  "model_name": "water_pump_fault_v1",
+  "created_at": "2026-10-25 19:34:19",
+  "target_col": "Fault",
+  "positive_class_name": "1",
+  "negative_class_name": "0",
+  "class_mapping": {
+    "0": 0,
+    "1": 1
+  },
+  "reverse_mapping": {
+    "0": "0",
+    "1": "1"
+  },
+  "feature_cols": [
+    "Pump_Type",
+    "Vibration_mms",
+    "Discharge_Pressure_bar",
+    "Flow_Rate_Lmin",
+    "Motor_Current_A"
+  ],
+  "numeric_cols": [
+    "Vibration_mms",
+    "Discharge_Pressure_bar",
+    "Flow_Rate_Lmin",
+    "Motor_Current_A"
+  ],
+  "categorical_cols": [
+    "Pump_Type"
+  ],
+  "processed_feature_names": [
+    "Vibration_mms",
+    "Discharge_Pressure_bar",
+    "Flow_Rate_Lmin",
+    "Motor_Current_A",
+    "Pump_Type_Pump_A",
+    "Pump_Type_Pump_B",
+    "Pump_Type_Pump_C"
+  ],
+  "input_dim": 7,
+  "threshold": 0.34,
+  "metrics": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "roc_auc": 1.0,
+    "confusion_matrix": [
+      [
+        17,
+        0
+      ],
+      [
+        0,
+        5
+      ]
+    ],
+    "test_records": 22,
+    "train_records": 101,
+    "validation_records": 22,
+    "threshold": 0.34
+  },
+  "history": {
+    "epoch": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "loss": [
+      0.61668,
+      0.57334,
+      0.53441,
+      0.46141,
+      0.42411,
+      0.40769,
+      0.32698,
+      0.31753,
+      0.29611,
+      0.28159,
+      0.23137,
+      0.24332,
+      0.19853,
+      0.17986,
+      0.17443,
+      0.16228,
+      0.29962,
+      0.13015,
+      0.13087,
+      0.13637
+    ],
+    "val_loss": [
+      0.60063,
+      0.5792,
+      0.5564,
+      0.53171,
+      0.50609,
+      0.47798,
+      0.44769,
+      0.41772,
+      0.38842,
+      0.35889,
+      0.32979,
+      0.30285,
+      0.27492,
+      0.24932,
+      0.22674,
+      0.20677,
+      0.1879,
+      0.17957,
+      0.16869,
+      0.15712
+    ],
+    "accuracy": [
+      0.60396,
+      0.59406,
+      0.63366,
+      0.69307,
+      0.71287,
+      0.72277,
+      0.82178,
+      0.83168,
+      0.87129,
+      0.86139,
+      0.87129,
+      0.90099,
+      0.92079,
+      0.91089,
+      0.94059,
+      0.9802,
+      0.90099,
+      0.9802,
+      0.9505,
+      0.9604
+    ],
+    "val_accuracy": [
+      0.86364,
+      0.86364,
+      0.86364,
+      0.86364,
+      0.90909,
+      0.90909,
+      0.90909,
+      0.95455,
+      0.95455,
+      0.95455,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  }
+}
