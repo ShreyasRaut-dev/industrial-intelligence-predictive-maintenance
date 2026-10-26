@@ -991,6 +991,7 @@ elif selected_nav == "🧪 Mode B: Train New Dataset":
     sample_pump_path = Path("industrial_fault_detection_dl/data/sample_custom_pump_dataset.csv")
     sample_comp_path = Path("industrial_fault_detection_dl/data/compressor_training_dataset.csv")
     sample_turb_path = Path("industrial_fault_detection_dl/data/wind_turbine_training_dataset.csv")
+    sample_motor_path = Path("industrial_fault_detection_dl/data/electric_motor_training_dataset.csv")
 
     st.markdown("##### 📁 Step 1: Upload or Select Training Dataset")
     uploaded_train = st.file_uploader("Upload labelled training dataset (CSV)", type=["csv"], key="train_uploader")
@@ -1002,19 +1003,23 @@ elif selected_nav == "🧪 Mode B: Train New Dataset":
             show_friendly_notice("CSV Parse Notice", "Could not read uploaded CSV file.", str(e), "warning")
 
     st.markdown("<div style='font-size:0.85rem; color:" + text_muted + "; margin-bottom:6px;'>Or quickly load one of our bundled industrial training datasets:</div>", unsafe_allow_html=True)
-    c_s1, c_s2, c_s3 = st.columns(3)
+    c_s1, c_s2, c_s3, c_s4 = st.columns(4)
     with c_s1:
-        if st.button("📂 Load Pump Dataset (145 rows)", key="btn_load_pump", use_container_width=True):
+        if st.button("📂 Pump (145)", key="btn_load_pump", use_container_width=True):
             if sample_pump_path.exists():
                 st.session_state.custom_train_df = pd.read_csv(sample_pump_path)
     with c_s2:
-        if st.button("📂 Load Compressor Dataset (260 rows)", key="btn_load_comp", use_container_width=True):
+        if st.button("📂 Compressor (260)", key="btn_load_comp", use_container_width=True):
             if sample_comp_path.exists():
                 st.session_state.custom_train_df = pd.read_csv(sample_comp_path)
     with c_s3:
-        if st.button("📂 Load Turbine Dataset (260 rows)", key="btn_load_turb", use_container_width=True):
+        if st.button("📂 Turbine (260)", key="btn_load_turb", use_container_width=True):
             if sample_turb_path.exists():
                 st.session_state.custom_train_df = pd.read_csv(sample_turb_path)
+    with c_s4:
+        if st.button("📂 Motor (280)", key="btn_load_motor", use_container_width=True):
+            if sample_motor_path.exists():
+                st.session_state.custom_train_df = pd.read_csv(sample_motor_path)
 
     active_train_df = st.session_state.custom_train_df
 
@@ -1235,6 +1240,11 @@ elif selected_nav == "🔮 Custom Model Inference":
             if turb_p.exists():
                 if st.button("📂 Load Wind Turbine Test Records (15 Turbines)", key="load_custom_turb_btn"):
                     st.session_state.custom_infer_df = pd.read_csv(turb_p).head(15)
+        elif "motor" in chosen_name.lower():
+            mot_p = Path("industrial_fault_detection_dl/data/electric_motor_test_records.csv")
+            if mot_p.exists():
+                if st.button("📂 Load Electric Motor Test Records (25 Motors)", key="load_custom_motor_btn"):
+                    st.session_state.custom_infer_df = pd.read_csv(mot_p).head(25)
 
         c_input_df = st.session_state.custom_infer_df
 
